@@ -111,6 +111,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","SF Pro Display"
 .metric-box .lbl{display:block;font-size:10px;color:var(--gray-light);margin-bottom:3px;font-weight:500}
 .metric-box .val{display:block;font-size:24px;font-weight:800;color:var(--dark);line-height:1}
 .metric-arrow{font-size:16px;color:#d1d5db;font-weight:300}
+.metric-target{background:linear-gradient(135deg,#dbeafe,#eff6ff);border:1.5px solid #93c5fd}
 
 /* Progress Bar */
 .progress-wrap{padding:4px 16px 12px;display:flex;align-items:center;gap:8px}
@@ -274,10 +275,12 @@ function buildProductCard(prod,vd,vt,id,it,mode){
     h+='<div class="metric-box"><span class="lbl">年初</span><span class="val num">'+vs+'</span></div>';
     h+='<span class="metric-arrow">→</span>';
     h+='<div class="metric-box"><span class="lbl">目前</span><span class="val num">'+vc+'</span></div>';
+    h+='<span class="metric-arrow">→</span>';
+    h+='<div class="metric-box metric-target"><span class="lbl">目标</span><span class="val num">'+vnt+'</span></div>';
     h+='</div>';
     h+='<div class="net-row">';
-    h+='<div class="net-item"><span class="net-label">净增</span><span class="net-val num '+(vn>=0?'c-green':'c-red')+'">'+(vn>=0?'+':'')+vn+'</span></div>';
-    h+='<div class="net-item"><span class="net-label">目标</span><span class="net-val num">'+vnt+'</span></div>';
+    h+='<div class="net-item"><span class="net-label">已净增</span><span class="net-val num '+(vn>=0?'c-green':'c-red')+'">'+(vn>=0?'+':'')+vn+'</span></div>';
+    h+='<div class="net-item"><span class="net-label">净增目标</span><span class="net-val num">'+vnt+'</span></div>';
     if(vst)h+=badge(vst);
     h+='</div>';
     h+='<div class="progress-wrap">'+progressHTML(vr)+'</div>';
