@@ -328,7 +328,8 @@ function showDash(){
   h+='<div class="hdr-right"><span class="hdr-date">数据更新 '+UPDATE_DATE+'</span><button class="btn-logout" onclick="doLogout()">退出</button></div>';
   h+='</div>';
   h+='<div class="q-tabs">';
-  ['Q1','Q2','Q3','Q4'].forEach(function(q){h+='<button class="q-tab'+(q===CUR_Q?' active':'')+'" onclick="switchQ(\''+q+'\')">'+q+'</button>';});
+  h+='<span style="color:rgba(255,255,255,.35);font-size:11px;padding:5px 6px 5px 0">考核目标：</span>';
+  ['Q1','Q2','Q3','Q4'].forEach(function(q){h+='<button class="q-tab'+(q===CUR_Q?' active':'')+'" onclick="switchQ(\''+q+'\')">'+q+'目标</button>';});
   h+='</div></div>';
 
   // Main Tabs
@@ -341,7 +342,7 @@ function showDash(){
   h+='<div class="container">';
 
   if(CUR_TAB==='value'){
-    h+='<div class="branch-info"><div class="branch-info-name">🏢 '+(isAdmin?'全部支行':branch)+'</div><div class="branch-info-date">'+CUR_Q+'季度 · 有价值客户</div></div>';
+    h+='<div class="branch-info"><div class="branch-info-name">🏢 '+(isAdmin?'全部支行':branch)+'</div><div class="branch-info-date">'+CUR_Q+'目标 · 有价值客户</div></div>';
     branches.forEach(function(b){
       var d=DATA[b];if(!d)return;
       var prods=[];
@@ -362,7 +363,7 @@ function showDash(){
     });
 
   }else if(CUR_TAB==='ice'){
-    h+='<div class="branch-info"><div class="branch-info-name">🏢 '+(isAdmin?'全部支行':branch)+'</div><div class="branch-info-date">'+CUR_Q+'季度 · 破冰口径</div></div>';
+    h+='<div class="branch-info"><div class="branch-info-name">🏢 '+(isAdmin?'全部支行':branch)+'</div><div class="branch-info-date">'+CUR_Q+'目标 · 破冰口径</div></div>';
     branches.forEach(function(b){
       var d=DATA[b];if(!d)return;
       var prods=[];
@@ -385,7 +386,7 @@ function showDash(){
     });
 
   }else{
-    h+='<div class="branch-info"><div class="branch-info-name">🏢 '+(isAdmin?'全部支行':branch)+'</div><div class="branch-info-date">'+CUR_Q+'季度 · 团队完成情况</div></div>';
+    h+='<div class="branch-info"><div class="branch-info-name">🏢 '+(isAdmin?'全部支行':branch)+'</div><div class="branch-info-date">'+CUR_Q+'目标 · 团队完成情况</div></div>';
     h+='<div class="search-bar"><input type="text" id="teamSearch" placeholder="🔍 搜索团队或客户经理..." oninput="filterTeam()"><span class="search-hint" id="teamHint">输入关键词实时筛选</span></div>';
 
     branches.forEach(function(b){
