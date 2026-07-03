@@ -340,6 +340,7 @@ function showDash(){
   h+='<div class="main-tab'+(CUR_TAB==='value'?' active':'')+'" onclick="switchTab(\'value\')"><span class="tab-icon">💎</span>有价值</div>';
   h+='<div class="main-tab'+(CUR_TAB==='ice'?' active':'')+'" onclick="switchTab(\'ice\')"><span class="tab-icon">🧊</span>破冰</div>';
   h+='<div class="main-tab'+(CUR_TAB==='team'?' active':'')+'" onclick="switchTab(\'team\')"><span class="tab-icon">👥</span>团队</div>';
+  if(isAdmin)h+='<div class="main-tab'+(CUR_TAB==='rank'?' active':'')+'" onclick="switchTab(\'rank\')"><span class="tab-icon">🏆</span>排名</div>';
   h+='</div>';
 
   h+='<div class="container">';
@@ -478,6 +479,78 @@ function showDash(){
 
         h+='</div></div>';
       });
+    });
+  }
+
+  // ===== 排名 Tab (Admin only) =====
+  if(CUR_TAB==='rank' && isAdmin){
+    h+='<div class="branch-info"><div class="branch-info-name">🏆 全行排名</div><div class="branch-info-date">'+CUR_Q+'目标</div></div>';
+
+    // Collect ranking data
+    var rankData={};
+    PRODUCTS.forEach(function(prod){rankData[prod]={branches:[],teams:[]};});
+
+    branches.forEach(function(b){
+      var d=DATA[b];if(!d)return;
+      PRODUCTS.forEach(function(prod){
+        // Value
+        var vd=(d.value||{})[prod]||null;
+        var vt=(d.value_targets||{})[prod]||null;
+        if(vd||vt){
+          var vs=vt?(vt.年初||0):0;
+          var vc=vd?(vd.当前||0):0;
+          var vn=vd?(vd.净增||0):0;
+          var nt=vt?qNetTarget(CUR_Q,vt):(vd?(vd.目标||0):0);
+          var rate=pct(vn,nt);
+          rankData[prod].branches.push({name:b,start:vs,current:vc,net:vn,target:nt,rate:rate});
+        }
+        // Ice
+        var id=(d.ice||{})[prod]||null;
+        var it=(d.ice_targets||{})[prod]||null;
+        if(id||it){
+          var is2=it?(it.年初||0):(id?(id.年初||0):0);
+          var ic=id?(id.当前||0):(it?(it.年初||0):0);
+          var in2=id?(id.净增||0):0;
+          var int2=it?(it.净增目标||it.净增||0):(id?(id.净增目标||0):0);
+          var ir=pct(in2,int2);
+          rankData[prod].branches.push({name:b,start:is2,current:ic,net:in2,target:int2,rate:ir});
+        }
+      });
+    });
+
+    // Render ranking tables
+    PRODUCTS.forEach(function(prod){
+      var list=rankData[prod].branches;
+      if(list.length===0)return;
+      // Sort by rate descending
+      var byRate=list.slice().sort(function(a,b){return b.rate-a.rate;});
+      // Sort by net descending
+      var byNet=list.slice().sort(function(a,b){return b.net-a.net;});
+
+      h+='<div class="product-card" style="margin:12px 0">';
+      h+='<div class="product-header"><div class="product-icon '+PCLASS[prod]+'">'+PICON[prod]+'</div><div><div class="product-name">'+PLABELS[prod]+'</div><div class="product-full">排名</div></div></div>';
+
+      // Completion rate ranking
+      h+='<div style="padding:12px 16px 0"><div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:8px">📊 完成率排名</div>';
+      h+='<table style="width:100%;font-size:12px;border-collapse:collapse">';
+      h+='<thead><tr style="background:rgba(0,0,0,.03)"><th style="padding:6px 8px;text-align:left">排名</th><th style="padding:6px 8px;text-align:left">支行</th><th style="padding:6px 8px;text-align:right">年初</th><th style="padding:6px 8px;text-align:right">目前</th><th style="padding:6px 8px;text-align:right">净增</th><th style="padding:6px 8px;text-align:right">目标</th><th style="padding:6px 8px;text-align:right">完成率</th></tr></thead><tbody>';
+      byRate.forEach(function(r,i){
+        var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+        h+='<tr style="border-bottom:1px solid rgba(0,0,0,.05)"><td style="padding:6px 8px">'+medal+'</td><td style="padding:6px 8px">'+r.name+'</td><td style="padding:6px 8px;text-align:right">'+r.start+'</td><td style="padding:6px 8px;text-align:right">'+r.current+'</td><td style="padding:6px 8px;text-align:right;color:'+(r.net>=0?'#10b981':'#ef4444')+'">'+(r.net>=0?'+':'')+r.net+'</td><td style="padding:6px 8px;text-align:right">'+r.target+'</td><td style="padding:6px 8px;text-align:right;font-weight:600;color:'+rc(r.rate)+'">'+r.rate+'%</td></tr>';
+      });
+      h+='</tbody></table></div>';
+
+      // Absolute net increase ranking
+      h+='<div style="padding:12px 16px"><div style="font-size:13px;font-weight:600;color:#64748b;margin-bottom:8px">📈 净增绝对数排名</div>';
+      h+='<table style="width:100%;font-size:12px;border-collapse:collapse">';
+      h+='<thead><tr style="background:rgba(0,0,0,.03)"><th style="padding:6px 8px;text-align:left">排名</th><th style="padding:6px 8px;text-align:left">支行</th><th style="padding:6px 8px;text-align:right">年初</th><th style="padding:6px 8px;text-align:right">目前</th><th style="padding:6px 8px;text-align:right">净增</th><th style="padding:6px 8px;text-align:right">目标</th><th style="padding:6px 8px;text-align:right">完成率</th></tr></thead><tbody>';
+      byNet.forEach(function(r,i){
+        var medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1);
+        h+='<tr style="border-bottom:1px solid rgba(0,0,0,.05)"><td style="padding:6px 8px">'+medal+'</td><td style="padding:6px 8px">'+r.name+'</td><td style="padding:6px 8px;text-align:right">'+r.start+'</td><td style="padding:6px 8px;text-align:right">'+r.current+'</td><td style="padding:6px 8px;text-align:right;color:'+(r.net>=0?'#10b981':'#ef4444')+'">'+(r.net>=0?'+':'')+r.net+'</td><td style="padding:6px 8px;text-align:right">'+r.target+'</td><td style="padding:6px 8px;text-align:right;font-weight:600;color:'+rc(r.rate)+'">'+r.rate+'%</td></tr>';
+      });
+      h+='</tbody></table></div>';
+
+      h+='</div>';
     });
   }
 
