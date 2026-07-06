@@ -482,9 +482,82 @@ function showDash(){
     });
   }
 
-  // ===== 排名 Tab (Admin only) =====
-  if(CUR_TAB==='rank' && isAdmin){
-    h+='<div class="branch-info"><div class="branch-info-name">🏆 全行排名</div><div class="branch-info-date">'+CUR_Q+'目标 · 支行 & 团队</div></div>';
+  // ===== 排名 Tab =====
+  if(CUR_TAB==='rank'){
+    if(isAdmin){
+    // ---- 分行总览 ----
+    h+='<div class="branch-info"><div class="branch-info-name">📊 分行总览</div><div class="branch-info-date">'+CUR_Q+'目标 · 全行汇总</div></div>';
+
+    // Compute totals
+    var valueTotals={};
+    var iceTotals={};
+    PRODUCTS.forEach(function(prod){
+      valueTotals[prod]={start:0,current:0,net:0,target:0};
+      iceTotals[prod]={start:0,current:0,net:0,target:0};
+    });
+    branches.forEach(function(b){
+      var d=DATA[b];if(!d)return;
+      PRODUCTS.forEach(function(prod){
+        // Value
+        var vd=(d.value||{})[prod]||null;
+        var vt=(d.value_targets||{})[prod]||null;
+        if(vd||vt){
+          var vs=vt?(vt.年初||0):0;
+          var vc=vd?(vd.当前||0):0;
+          var vn=vd?(vd.净增||0):0;
+          var nt=vt?qNetTarget(CUR_Q,vt):(vd?(vd.目标||0):0);
+          valueTotals[prod].start+=vs;
+          valueTotals[prod].current+=vc;
+          valueTotals[prod].net+=vn;
+          valueTotals[prod].target+=nt;
+        }
+        // Ice
+        var id=(d.ice||{})[prod]||null;
+        var it=(d.ice_targets||{})[prod]||null;
+        if(id||it){
+          var is2=it?(it.年初||0):(id?(id.年初||0):0);
+          var ic=id?(id.当前||0):(it?(it.年初||0):0);
+          var in2=id?(id.净增||0):0;
+          var int2=it?(it.净增目标||it.净增||0):(id?(id.净增目标||0):0);
+          iceTotals[prod].start+=is2;
+          iceTotals[prod].current+=ic;
+          iceTotals[prod].net+=in2;
+          iceTotals[prod].target+=int2;
+        }
+      });
+    });
+
+    // Render summary cards
+    h+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">';
+
+    // 有价值 summary
+    h+='<div class="product-card"><div class="product-header"><div class="product-icon cz">💎</div><div><div class="product-name">有价值汇总</div><div class="product-full">全行有价值客户</div></div></div>';
+    h+='<div style="padding:8px 16px 12px">';
+    h+='<table style="width:100%;font-size:12px;border-collapse:collapse">';
+    h+='<thead><tr style="background:rgba(0,0,0,.03)"><th style="padding:6px 8px;text-align:left">产品</th><th style="padding:6px 8px;text-align:right">年初</th><th style="padding:6px 8px;text-align:right">目前</th><th style="padding:6px 8px;text-align:right">净增</th><th style="padding:6px 8px;text-align:right">目标</th><th style="padding:6px 8px;text-align:right">完成率</th></tr></thead><tbody>';
+    PRODUCTS.forEach(function(prod){
+      var t=valueTotals[prod];
+      if(t.current===0&&t.target===0)return;
+      var r=pct(t.net,t.target);
+      h+='<tr style="border-bottom:1px solid rgba(0,0,0,.05)"><td style="padding:5px 8px">'+PICON[prod]+' '+prod+'</td><td style="padding:5px 8px;text-align:right">'+t.start+'</td><td style="padding:5px 8px;text-align:right">'+t.current+'</td><td style="padding:5px 8px;text-align:right;color:'+(t.net>=0?'#10b981':'#ef4444')+'">'+(t.net>=0?'+':'')+t.net+'</td><td style="padding:5px 8px;text-align:right">'+t.target+'</td><td style="padding:5px 8px;text-align:right;font-weight:700;color:'+rc(r)+'">'+r+'%</td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+
+    // 破冰 summary
+    h+='<div class="product-card"><div class="product-header"><div class="product-icon zcc">🧊</div><div><div class="product-name">破冰汇总</div><div class="product-full">全行破冰完成</div></div></div>';
+    h+='<div style="padding:8px 16px 12px">';
+    h+='<table style="width:100%;font-size:12px;border-collapse:collapse">';
+    h+='<thead><tr style="background:rgba(0,0,0,.03)"><th style="padding:6px 8px;text-align:left">产品</th><th style="padding:6px 8px;text-align:right">年初</th><th style="padding:6px 8px;text-align:right">目前</th><th style="padding:6px 8px;text-align:right">净增</th><th style="padding:6px 8px;text-align:right">目标</th><th style="padding:6px 8px;text-align:right">完成率</th></tr></thead><tbody>';
+    PRODUCTS.forEach(function(prod){
+      var t=iceTotals[prod];
+      if(t.current===0&&t.target===0)return;
+      var r=pct(t.net,t.target);
+      h+='<tr style="border-bottom:1px solid rgba(0,0,0,.05)"><td style="padding:5px 8px">'+PICON[prod]+' '+prod+'</td><td style="padding:5px 8px;text-align:right">'+t.start+'</td><td style="padding:5px 8px;text-align:right">'+t.current+'</td><td style="padding:5px 8px;text-align:right;color:'+(t.net>=0?'#10b981':'#ef4444')+'">'+(t.net>=0?'+':'')+t.net+'</td><td style="padding:5px 8px;text-align:right">'+t.target+'</td><td style="padding:5px 8px;text-align:right;font-weight:700;color:'+rc(r)+'">'+r+'%</td></tr>';
+    });
+    h+='</tbody></table></div></div>';
+
+    h+='</div>';
+    } // end admin overview
 
     // ---- Collect branch ranking data ----
     var rankData={};
